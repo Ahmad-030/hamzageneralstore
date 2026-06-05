@@ -31,8 +31,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
         .first;
 
     final filtered = txs.where((t) {
-      return t.date
-              .isAfter(_from.subtract(const Duration(days: 1))) &&
+      return t.date.isAfter(_from.subtract(const Duration(days: 1))) &&
           t.date.isBefore(_to.add(const Duration(days: 1)));
     }).toList();
 
@@ -76,15 +75,20 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
-                pw.Text('Customer: ${widget.customer.name}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.Text('Phone: ${widget.customer.phone}'),
-              ]),
-              pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.end, children: [
-                pw.Text('Period: ${fmt.format(_from)} – ${fmt.format(_to)}'),
-                pw.Text('Generated: ${fmt.format(DateTime.now())}'),
-              ]),
+              pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('Customer: ${widget.customer.name}',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Phone: ${widget.customer.phone}'),
+                  ]),
+              pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text(
+                        'Period: ${fmt.format(_from)} - ${fmt.format(_to)}'),
+                    pw.Text('Generated: ${fmt.format(DateTime.now())}'),
+                  ]),
             ],
           ),
           pw.SizedBox(height: 16),
@@ -108,24 +112,25 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
           pw.SizedBox(height: 20),
           // Table header
           pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding:
+            const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             color: PdfColor.fromHex('#F1F5F9'),
             child: pw.Row(
               children: [
                 pw.Expanded(
                     flex: 2,
                     child: pw.Text('Date',
-                        style:
-                            pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 11))),
                 pw.Expanded(
                     flex: 3,
                     child: pw.Text('Description',
-                        style:
-                            pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 11))),
                 pw.Expanded(
                     child: pw.Text('Type',
-                        style:
-                            pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11))),
+                        style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold, fontSize: 11))),
                 pw.Expanded(
                     child: pw.Text('Amount',
                         textAlign: pw.TextAlign.right,
@@ -138,7 +143,8 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
           ...filtered.map((t) {
             final isPayment = t.type == TransactionType.payment;
             return pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding:
+              const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: const pw.BoxDecoration(
                   border: pw.Border(
                       bottom: pw.BorderSide(color: PdfColors.grey300))),
@@ -179,7 +185,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
             child: pw.Text(
               'Current Due: Rs. ${widget.customer.totalDue.toStringAsFixed(0)}',
               style:
-                  pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+              pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
           ),
         ],
@@ -200,8 +206,7 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Text(label,
-                style:
-                    pw.TextStyle(color: PdfColors.white, fontSize: 10)),
+                style: pw.TextStyle(color: PdfColors.white, fontSize: 10)),
             pw.Text(value,
                 style: pw.TextStyle(
                     color: PdfColors.white,
@@ -211,6 +216,61 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
         ),
       ),
     );
+  }
+
+  /// Formats Pakistani phone number for WhatsApp
+  /// 03001234567 → 923001234567
+  String _formatPhoneForWhatsApp(String phone) {
+    String digits = phone.replaceAll(RegExp(r'[^\d]'), '');
+    if (digits.startsWith('0')) {
+      return '92${digits.substring(1)}';
+    } else if (!digits.startsWith('92')) {
+      return '92$digits';
+    }
+    return digits;
+  }
+
+  Future<void> _sendWhatsApp() async {
+    try {
+      final formattedPhone = _formatPhoneForWhatsApp(widget.customer.phone);
+      final fmt = DateFormat('d MMM yyyy');
+
+      final message = 'Hello ${widget.customer.name},\n\n'
+          'Your account statement from Hamza General Store:\n\n'
+          'Current Due: Rs. ${widget.customer.totalDue.toStringAsFixed(0)}\n\n'
+          'Period: ${fmt.format(_from)} to ${fmt.format(_to)}\n\n'
+          'Please contact us for any queries.\n'
+          'Thank you!';
+
+      final uri = Uri(
+        scheme: 'https',
+        host: 'wa.me',
+        path: '/$formattedPhone',
+        queryParameters: {'text': message},
+      );
+
+      final launched =
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+      if (!launched && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Could not open WhatsApp. Please make sure it is installed.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening WhatsApp: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -259,7 +319,8 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
                     ),
                     items: ['This Month', 'Last Month', 'Custom Range']
                         .map((e) => DropdownMenuItem(
-                            value: e, child: Text(e, style: GoogleFonts.poppins())))
+                        value: e,
+                        child: Text(e, style: GoogleFonts.poppins())))
                         .toList(),
                     onChanged: (v) {
                       setState(() {
@@ -285,7 +346,8 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
                             children: [
                               Text('From',
                                   style: GoogleFonts.poppins(
-                                      fontSize: 11, color: AppColors.textGrey)),
+                                      fontSize: 11,
+                                      color: AppColors.textGrey)),
                               TextButton(
                                 onPressed: () async {
                                   final d = await showDatePicker(
@@ -310,7 +372,8 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
                             children: [
                               Text('To',
                                   style: GoogleFonts.poppins(
-                                      fontSize: 11, color: AppColors.textGrey)),
+                                      fontSize: 11,
+                                      color: AppColors.textGrey)),
                               TextButton(
                                 onPressed: () async {
                                   final d = await showDatePicker(
@@ -336,34 +399,36 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // Preview button
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: _previewing
                     ? null
                     : () async {
-                        setState(() => _previewing = true);
-                        try {
-                          final doc = await _buildPdf();
-                          if (!mounted) return;
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => Scaffold(
-                                appBar: AppBar(
-                                    title: const Text('Preview Statement')),
-                                body: PdfPreview(
-                                  build: (fmt) => doc.save(),
-                                  allowPrinting: true,
-                                  allowSharing: true,
-                                ),
-                              ),
-                            ),
-                          );
-                        } finally {
-                          if (mounted) setState(() => _previewing = false);
-                        }
-                      },
+                  setState(() => _previewing = true);
+                  try {
+                    final doc = await _buildPdf();
+                    if (!mounted) return;
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(
+                              title: const Text('Preview Statement')),
+                          body: PdfPreview(
+                            build: (fmt) => doc.save(),
+                            allowPrinting: true,
+                            allowSharing: true,
+                          ),
+                        ),
+                      ),
+                    );
+                  } finally {
+                    if (mounted) setState(() => _previewing = false);
+                  }
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
                   padding: const EdgeInsets.symmetric(vertical: 14),
@@ -379,51 +444,49 @@ class _GeneratePdfScreenState extends State<GeneratePdfScreen> {
               ),
             ),
             const SizedBox(height: 12),
+
+            // Generate PDF button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _loading
                     ? null
                     : () async {
-                        setState(() => _loading = true);
-                        try {
-                          final doc = await _buildPdf();
-                          await Printing.layoutPdf(
-                              onLayout: (_) => doc.save());
-                        } finally {
-                          if (mounted) setState(() => _loading = false);
-                        }
-                      },
+                  setState(() => _loading = true);
+                  try {
+                    final doc = await _buildPdf();
+                    await Printing.layoutPdf(
+                        onLayout: (_) => doc.save());
+                  } finally {
+                    if (mounted) setState(() => _loading = false);
+                  }
+                },
                 icon: _loading
                     ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
                     : const Icon(Icons.picture_as_pdf_rounded, size: 18),
                 label: const Text('Generate PDF'),
               ),
             ),
             const SizedBox(height: 12),
-            // WhatsApp share
+
+            // WhatsApp share button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () async {
-                  final msg = Uri.encodeComponent(
-                      'Hello ${widget.customer.name},\n\nYour account statement from Hamza General Store:\n\nCurrent Due: Rs. ${widget.customer.totalDue.toStringAsFixed(0)}\n\nPeriod: ${fmt.format(_from)} to ${fmt.format(_to)}\n\nPlease contact us for any queries.\nThank you!');
-                  final phone = widget.customer.phone
-                      .replaceAll(RegExp(r'[^\d+]'), '');
-                  final uri = Uri.parse('https://wa.me/$phone?text=$msg');
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri,
-                        mode: LaunchMode.externalApplication);
-                  }
-                },
+                onPressed: _sendWhatsApp,
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366)),
+                  backgroundColor: const Color(0xFF25D366),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50)),
+                ),
                 icon: const Icon(Icons.chat, size: 18),
-                label: const Text('Send via WhatsApp'),
+                label: Text('Send via WhatsApp',
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
               ),
             ),
           ],

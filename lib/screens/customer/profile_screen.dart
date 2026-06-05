@@ -8,7 +8,9 @@ import '../../providers/session_provider.dart';
 import '../../models/models.dart';
 import '../../utils/theme.dart';
 import '../../widgets/widgets.dart';
+import '../AboutScreen.dart';
 import '../splash_screen.dart';
+import 'ContactStoreScreen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String customerId;
@@ -85,21 +87,38 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StoreActionButton(
+                        icon: Icons.headset_mic_rounded,
+                        label: 'Contact Store',
+                        color: const Color(0xFF25D366),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ContactStoreScreen())),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StoreActionButton(
+                        icon: Icons.info_outline_rounded,
+                        label: 'About App',
+                        color: AppColors.primaryDark,
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AboutScreen())),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20,),
                 // Actions
                 AppCard(
                   child: Column(
                     children: [
-                      _ActionRow(
-                        icon: Icons.phone_rounded,
-                        label: 'Contact Store',
-                        color: AppColors.primary,
-                        onTap: () async {
-                          final uri = Uri.parse('tel:+921234567890');
-                          if (await canLaunchUrl(uri)) launchUrl(uri);
-                        },
-                      ),
-                      const Divider(color: AppColors.border),
                       _ActionRow(
                         icon: Icons.logout_rounded,
                         label: 'Logout',
@@ -188,6 +207,50 @@ class _ActionRow extends StatelessWidget {
             const Spacer(),
             const Icon(Icons.chevron_right_rounded,
                 color: AppColors.textLight, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _StoreActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _StoreActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withOpacity(0.25)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),

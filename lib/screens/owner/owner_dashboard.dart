@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../providers/session_provider.dart';
 import '../../utils/theme.dart';
 import '../../widgets/widgets.dart';
+import '../AboutScreen.dart';
 import 'owner_orders.dart';
 import 'customers_screen.dart';
 import 'owner_order_details.dart';
@@ -56,7 +57,7 @@ class _OwnerDashboardScreenState extends State<OwnerDashboardScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textLight,
         selectedLabelStyle:
-            GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600),
+        GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600),
         unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
         items: const [
           BottomNavigationBarItem(
@@ -103,7 +104,7 @@ class _DashboardTab extends StatelessWidget {
                   'recentOrders': <StoreOrder>[],
                 };
             final recentOrders =
-                (data['recentOrders'] as List).cast<StoreOrder>();
+            (data['recentOrders'] as List).cast<StoreOrder>();
             return SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -169,7 +170,7 @@ class _DashboardTab extends StatelessWidget {
                       _StatCard(
                           label: 'Total Due',
                           value:
-                              'Rs. ${(data['totalDue'] as double).toStringAsFixed(0)}',
+                          'Rs. ${(data['totalDue'] as double).toStringAsFixed(0)}',
                           icon: Icons.account_balance_wallet_rounded,
                           color: AppColors.error,
                           onTap: () => onNavigate(2)),
@@ -226,17 +227,17 @@ class _DashboardTab extends StatelessWidget {
                         icon: Icons.receipt_long_outlined)
                   else
                     ...recentOrders.map((o) => Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: OrderCard(
-                            order: o,
-                            onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => OwnerOrderDetailsScreen(
-                                        orderId: o.id))),
-                            showCustomer: true,
-                          ),
-                        )),
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: OrderCard(
+                        order: o,
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => OwnerOrderDetailsScreen(
+                                    orderId: o.id))),
+                        showCustomer: true,
+                      ),
+                    )),
                   const SizedBox(height: 16),
                 ],
               ),
@@ -258,7 +259,7 @@ class _MoreTab extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('More')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +270,7 @@ class _MoreTab extends StatelessWidget {
               builder: (ctx, snap) {
                 final data = snap.data ?? {};
                 final username = data['username'] ?? '—';
-                final phone = data['phone'] ?? '—';
+                final password = data['password'] ?? '—';
                 return Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
@@ -301,7 +302,7 @@ class _MoreTab extends StatelessWidget {
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.white)),
-                          Text(phone,
+                          Text(password,
                               style: GoogleFonts.poppins(
                                   fontSize: 13, color: Colors.white70)),
                         ],
@@ -312,6 +313,7 @@ class _MoreTab extends StatelessWidget {
               },
             ),
             const SizedBox(height: 16),
+
             AppCard(
               child: Column(
                 children: [
@@ -329,8 +331,17 @@ class _MoreTab extends StatelessWidget {
                     onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) =>
-                                const ChangeCredentialsScreen())),
+                            builder: (_) => const ChangeCredentialsScreen())),
+                  ),
+                  const Divider(color: AppColors.border, height: 1),
+                  _MoreTile(
+                    icon: Icons.info_outline_rounded,
+                    label: 'About',
+                    color: AppColors.primary,
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const AboutScreen())),
                   ),
                   const Divider(color: AppColors.border, height: 1),
                   _MoreTile(
@@ -344,7 +355,7 @@ class _MoreTab extends StatelessWidget {
                         context,
                         MaterialPageRoute(
                             builder: (_) => const SplashScreen()),
-                        (r) => false,
+                            (r) => false,
                       );
                     },
                   ),
@@ -395,9 +406,9 @@ class _MoreTile extends StatelessWidget {
   final VoidCallback onTap;
   const _MoreTile(
       {required this.icon,
-      required this.label,
-      required this.color,
-      required this.onTap});
+        required this.label,
+        required this.color,
+        required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -503,9 +514,9 @@ class _QuickAction extends StatelessWidget {
 
   const _QuickAction(
       {required this.icon,
-      required this.label,
-      required this.color,
-      required this.onTap});
+        required this.label,
+        required this.color,
+        required this.onTap});
 
   @override
   Widget build(BuildContext context) {

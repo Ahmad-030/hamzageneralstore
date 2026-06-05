@@ -7,11 +7,14 @@ import '../../providers/session_provider.dart';
 import '../../models/models.dart';
 import '../../utils/theme.dart';
 import '../../widgets/widgets.dart';
+import '../AboutScreen.dart';
+import 'ContactStoreScreen.dart';
 import 'place_order.dart';
 import 'my_orders.dart';
 import 'khata_screen.dart';
 import 'profile_screen.dart';
 import 'order_details.dart';
+
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -62,7 +65,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textLight,
         selectedLabelStyle:
-            GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600),
+        GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600),
         unselectedLabelStyle: GoogleFonts.poppins(fontSize: 11),
         items: const [
           BottomNavigationBarItem(
@@ -138,8 +141,7 @@ class _HomeTab extends StatelessWidget {
 
               // ── Balance Card ─────────────────────────────────────────────
               StreamBuilder<Customer>(
-                stream:
-                    FirebaseService.instance.customerStream(customerId),
+                stream: FirebaseService.instance.customerStream(customerId),
                 builder: (ctx, snap) {
                   final due = snap.data?.totalDue ?? 0;
                   return GestureDetector(
@@ -226,6 +228,10 @@ class _HomeTab extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+
+              // ── Store Actions ────────────────────────────────────────────
+
               const SizedBox(height: 24),
 
               // ── Recent Activity ──────────────────────────────────────────
@@ -237,8 +243,8 @@ class _HomeTab extends StatelessWidget {
               const SizedBox(height: 12),
 
               StreamBuilder<List<StoreOrder>>(
-                stream: FirebaseService.instance
-                    .customerOrdersStream(customerId),
+                stream:
+                FirebaseService.instance.customerOrdersStream(customerId),
                 builder: (ctx, snap) {
                   if (snap.connectionState == ConnectionState.waiting) {
                     return const Padding(
@@ -258,17 +264,17 @@ class _HomeTab extends StatelessWidget {
                     children: orders
                         .take(3)
                         .map((o) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: OrderCard(
-                                order: o,
-                                onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) =>
-                                            CustomerOrderDetailsScreen(
-                                                orderId: o.id))),
-                              ),
-                            ))
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: OrderCard(
+                        order: o,
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    CustomerOrderDetailsScreen(
+                                        orderId: o.id))),
+                      ),
+                    ))
                         .toList(),
                   );
                 },
@@ -281,6 +287,8 @@ class _HomeTab extends StatelessWidget {
     );
   }
 }
+
+// ─── QUICK ACTION ─────────────────────────────────────────────────────────────
 
 class _QuickAction extends StatelessWidget {
   final IconData icon;
@@ -322,3 +330,5 @@ class _QuickAction extends StatelessWidget {
     );
   }
 }
+
+// ─── STORE ACTION BUTTON (Contact Store / About) ──────────────────────────────
