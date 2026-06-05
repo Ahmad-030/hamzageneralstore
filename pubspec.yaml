@@ -1,0 +1,48 @@
+
+name: hamza_general_store
+description: Hamza General Store - Order, Khata & Customer Management App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^2.27.1
+  firebase_database: ^10.4.9
+
+  # State Management
+  provider: ^6.1.1
+
+  # Google Fonts
+  google_fonts: ^6.1.0
+
+  # PDF Generation
+  pdf: ^3.10.7
+  printing: ^5.12.0
+
+  # URL Launcher (WhatsApp)
+  url_launcher: ^6.2.4
+
+  # Date Formatting
+  intl: ^0.19.0
+
+  # UUID
+  uuid: ^4.3.3
+
+  # Shared Preferences (local session)
+  shared_preferences: ^2.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
