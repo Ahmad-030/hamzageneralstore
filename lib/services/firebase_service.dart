@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:uuid/uuid.dart';
 import '../models/models.dart';
@@ -259,22 +260,22 @@ class FirebaseService {
   // ──────────────────────────── DASHBOARD STREAMS ────────────────────────────
 
   Stream<Map<String, dynamic>> dashboardStream() {
-    return _db.onValue.map((event) {
-      if (!event.snapshot.exists) {
-        return {
-          'totalCustomers': 0,
-          'totalOrders': 0,
-          'pendingOrders': 0,
-          'totalDue': 0.0,
-          'recentOrders': <StoreOrder>[],
-        };
-      }
-      final root = event.snapshot.value as Map<dynamic, dynamic>;
+    // Listen to 'customers' and 'orders' nodes separately and combine them.
+    // Listening to the database root (_db.onValue) fails silently when Firebase
+    // security rules restrict root-level reads — causing the dashboard to never
+    // update. Scoped listeners are reliable and also more efficient.
+    final customersStream = _db.child('customers').onValue;
+    final ordersStream = _db.child('orders').onValue;
 
-      final customers = root['customers'] as Map? ?? {};
-      final orders = root['orders'] as Map? ?? {};
+    // Use a StreamController to merge both streams and re-emit whenever either
+    // node changes.
+    late Map customersSnap = {};
+    late Map ordersSnap = {};
 
-      final allOrders = orders.entries
+    final controller = StreamController<Map<String, dynamic>>();
+
+    Map<String, dynamic> buildData() {
+      final allOrders = ordersSnap.entries
           .map((e) => StoreOrder.fromMap(
           e.key as String, e.value as Map<dynamic, dynamic>))
           .toList()
@@ -284,17 +285,50 @@ class FirebaseService {
           allOrders.where((o) => o.status == OrderStatus.pending).length;
 
       double totalDue = 0;
-      for (final v in customers.values) {
+      for (final v in customersSnap.values) {
         totalDue += ((v as Map)['totalDue'] as num?)?.toDouble() ?? 0;
       }
 
       return {
-        'totalCustomers': customers.length,
-        'totalOrders': orders.length,
+        'totalCustomers': customersSnap.length,
+        'totalOrders': ordersSnap.length,
         'pendingOrders': pendingCount,
         'totalDue': totalDue,
         'recentOrders': allOrders.take(5).toList(),
       };
+    }
+
+    final sub1 = customersStream.listen((event) {
+      customersSnap =
+          (event.snapshot.exists ? event.snapshot.value as Map? : null) ?? {};
+      if (!controller.isClosed) controller.add(buildData());
+    }, onError: (e) {
+      if (!controller.isClosed) controller.addError(e);
     });
+
+    final sub2 = ordersStream.listen((event) {
+      ordersSnap =
+          (event.snapshot.exists ? event.snapshot.value as Map? : null) ?? {};
+      if (!controller.isClosed) controller.add(buildData());
+    }, onError: (e) {
+      if (!controller.isClosed) controller.addError(e);
+    });
+
+    controller.onCancel = () {
+      sub1.cancel();
+      sub2.cancel();
+      controller.close();
+    };
+
+    // Emit initial zero state immediately so the UI doesn't show a blank screen
+    controller.add({
+      'totalCustomers': 0,
+      'totalOrders': 0,
+      'pendingOrders': 0,
+      'totalDue': 0.0,
+      'recentOrders': <StoreOrder>[],
+    });
+
+    return controller.stream;
   }
 }

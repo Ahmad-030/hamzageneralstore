@@ -95,6 +95,26 @@ class _DashboardTab extends StatelessWidget {
         child: StreamBuilder<Map<String, dynamic>>(
           stream: FirebaseService.instance.dashboardStream(),
           builder: (ctx, snap) {
+            // Show error indicator if the stream itself errored (e.g. permission denied)
+            if (snap.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.cloud_off_rounded,
+                          size: 48, color: Colors.red),
+                      const SizedBox(height: 12),
+                      Text('Could not load dashboard data.\nCheck your connection.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                              fontSize: 14, color: AppColors.textGrey)),
+                    ],
+                  ),
+                ),
+              );
+            }
             final data = snap.data ??
                 {
                   'totalCustomers': 0,
@@ -170,7 +190,7 @@ class _DashboardTab extends StatelessWidget {
                       _StatCard(
                           label: 'Total Due',
                           value:
-                          'Rs. ${(data['totalDue'] as double).toStringAsFixed(0)}',
+                          'Rs. ${(data['totalDue'] as num).toStringAsFixed(0)}',
                           icon: Icons.account_balance_wallet_rounded,
                           color: AppColors.error,
                           onTap: () => onNavigate(2)),

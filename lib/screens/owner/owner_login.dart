@@ -202,64 +202,6 @@ class _OwnerLoginScreenState extends State<OwnerLoginScreen> {
 
               const SizedBox(height: 24),
 
-              // Default credentials hint (only shown first time)
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.info_outline_rounded,
-                            color: AppColors.primary, size: 16),
-                        const SizedBox(width: 8),
-                        Text('Default credentials (first login)',
-                            style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primary)),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const SizedBox(width: 24),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Username: HamzaOwner',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: AppColors.primaryDark)),
-                            Text('Password: Hamza@1234',
-                                style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    color: AppColors.primaryDark)),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        const SizedBox(width: 24),
-                        Expanded(
-                          child: Text(
-                            'Change these immediately after first login!',
-                            style: GoogleFonts.poppins(
-                                fontSize: 11,
-                                color: AppColors.warning,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
